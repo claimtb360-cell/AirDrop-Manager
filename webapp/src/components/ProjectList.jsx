@@ -1,10 +1,29 @@
 import { Plus, Search, Calendar, CheckCircle2, ExternalLink, Rocket } from 'lucide-react'
-import { format, isAfter, isBefore } from 'date-fns'
+
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  try {
+    const d = new Date(dateStr + 'T00:00:00')
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  } catch (e) {
+    return dateStr
+  }
+}
 
 function getProjectStatus(project) {
   const now = new Date()
-  if (project.endDate && isBefore(new Date(project.endDate), now)) return 'ended'
-  if (project.startDate && isAfter(new Date(project.startDate), now)) return 'upcoming'
+  try {
+    if (project.endDate) {
+      const end = new Date(project.endDate + 'T23:59:59')
+      if (end < now) return 'ended'
+    }
+    if (project.startDate) {
+      const start = new Date(project.startDate + 'T00:00:00')
+      if (start > now) return 'upcoming'
+    }
+  } catch (e) {
+    // ignore invalid dates
+  }
   return 'active'
 }
 
@@ -61,7 +80,7 @@ function ProjectList({ projects, onSelect, onAdd, searchQuery, setSearchQuery })
                   {project.startDate && (
                     <span>
                       <Calendar size={14} />
-                      {format(new Date(project.startDate), 'MMM d, yyyy')}
+                      {formatDate(project.startDate)}
                     </span>
                   )}
                   {project.tasks?.length > 0 && (

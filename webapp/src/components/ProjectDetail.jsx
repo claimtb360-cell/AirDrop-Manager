@@ -1,6 +1,15 @@
 import { useState } from 'react'
 import { ArrowLeft, Trash2, ExternalLink, Calendar, Clock, Plus, X, Check } from 'lucide-react'
-import { format } from 'date-fns'
+
+function formatDate(dateStr) {
+  if (!dateStr) return ''
+  try {
+    const d = new Date(dateStr + 'T00:00:00')
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  } catch (e) {
+    return dateStr
+  }
+}
 
 function ProjectDetail({ project, onBack, onUpdate, onDelete, onToggleTask }) {
   const [newTask, setNewTask] = useState('')
@@ -74,14 +83,14 @@ function ProjectDetail({ project, onBack, onUpdate, onDelete, onToggleTask }) {
           <div className="info-card">
             <label>Start Date</label>
             <p><Calendar size={14} style={{ display: 'inline', marginRight: '6px' }} />
-              {format(new Date(project.startDate), 'MMM d, yyyy')}</p>
+              {formatDate(project.startDate)}</p>
           </div>
         )}
         {project.endDate && (
           <div className="info-card">
             <label>End Date</label>
             <p><Clock size={14} style={{ display: 'inline', marginRight: '6px' }} />
-              {format(new Date(project.endDate), 'MMM d, yyyy')}</p>
+              {formatDate(project.endDate)}</p>
           </div>
         )}
         {project.network && (

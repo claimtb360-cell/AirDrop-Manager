@@ -1,11 +1,27 @@
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight, Check, ExternalLink } from 'lucide-react'
-import { format, addDays, subDays } from 'date-fns'
+
+function formatDateKey(date) {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
+function formatDateDisplay(date) {
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+function addDays(date, days) {
+  const result = new Date(date)
+  result.setDate(result.getDate() + days)
+  return result
+}
 
 function DailyChecklist({ projects, onToggleTask, onSelectProject, setActiveView }) {
   const [currentDate, setCurrentDate] = useState(new Date())
-  const dateKey = format(currentDate, 'yyyy-MM-dd')
-  const isToday = dateKey === format(new Date(), 'yyyy-MM-dd')
+  const dateKey = formatDateKey(currentDate)
+  const isToday = dateKey === formatDateKey(new Date())
 
   const projectsWithTasks = projects.filter(p => p.tasks && p.tasks.length > 0)
 
@@ -27,10 +43,10 @@ function DailyChecklist({ projects, onToggleTask, onSelectProject, setActiveView
           )}
         </div>
         <div className="date-nav">
-          <button onClick={() => setCurrentDate(subDays(currentDate, 1))}>
+          <button onClick={() => setCurrentDate(addDays(currentDate, -1))}>
             <ChevronLeft size={16} />
           </button>
-          <span>{isToday ? 'Today' : format(currentDate, 'MMM d, yyyy')}</span>
+          <span>{isToday ? 'Today' : formatDateDisplay(currentDate)}</span>
           <button onClick={() => setCurrentDate(addDays(currentDate, 1))}>
             <ChevronRight size={16} />
           </button>
