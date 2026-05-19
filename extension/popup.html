@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AirDrop Manager</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup">
+    <header class="header">
+      <div class="logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/>
+          <path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>
+        </svg>
+        <h1>AirDrop Manager</h1>
+      </div>
+      <div class="header-actions">
+        <button id="addBtn" class="icon-btn" title="Add Project">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="tasks">Today's Tasks</button>
+      <button class="tab" data-tab="projects">Projects</button>
+    </nav>
+
+    <main class="content">
+      <!-- Today's Tasks View -->
+      <div id="tasks-view" class="view active">
+        <div class="date-bar">
+          <span id="todayDate"></span>
+          <span id="progressText"></span>
+        </div>
+        <div id="progressBar" class="progress-bar">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <div id="tasksList"></div>
+      </div>
+
+      <!-- Projects View -->
+      <div id="projects-view" class="view">
+        <div id="projectsList"></div>
+      </div>
+    </main>
+
+    <!-- Add Project Form -->
+    <div id="addForm" class="add-form hidden">
+      <h3>Add Project</h3>
+      <input type="text" id="projectName" placeholder="Project name *" required>
+      <input type="text" id="projectDesc" placeholder="Description (optional)">
+      <input type="text" id="projectNetwork" placeholder="Network (e.g., Ethereum)">
+      <div class="form-row">
+        <input type="date" id="projectStart" placeholder="Start date">
+        <input type="date" id="projectEnd" placeholder="End date">
+      </div>
+      <input type="url" id="projectLink" placeholder="Main link (https://...)">
+      <input type="text" id="projectTask" placeholder="Daily task (e.g., Check-in)">
+      <div class="form-actions">
+        <button id="cancelBtn" class="btn-secondary">Cancel</button>
+        <button id="saveBtn" class="btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
