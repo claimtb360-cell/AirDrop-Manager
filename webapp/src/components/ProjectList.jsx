@@ -1,4 +1,4 @@
-import { Plus, Search, Calendar, CheckCircle2, ExternalLink } from 'lucide-react'
+import { Plus, Search, Calendar, CheckCircle2, ExternalLink, Rocket } from 'lucide-react'
 import { format, isAfter, isBefore } from 'date-fns'
 
 function getProjectStatus(project) {
