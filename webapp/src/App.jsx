@@ -4,6 +4,8 @@ import ProjectList from './components/ProjectList'
 import ProjectDetail from './components/ProjectDetail'
 import AddProjectModal from './components/AddProjectModal'
 import DailyChecklist from './components/DailyChecklist'
+import TelegramFeed from './components/TelegramFeed'
+import TelegramConfig from './components/TelegramConfig'
 import './App.css'
 
 function App() {
@@ -13,7 +15,7 @@ function App() {
   })
   const [selectedProject, setSelectedProject] = useState(null)
   const [showAddModal, setShowAddModal] = useState(false)
-  const [activeView, setActiveView] = useState('projects') // 'projects' | 'checklist'
+  const [activeView, setActiveView] = useState('projects') // 'projects' | 'checklist' | 'telegram' | 'telegram-config'
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
@@ -95,6 +97,12 @@ function App() {
             onSelectProject={setSelectedProject}
             setActiveView={setActiveView}
           />
+        )}
+        {activeView === 'telegram' && (
+          <TelegramFeed projects={projects} />
+        )}
+        {activeView === 'telegram-config' && (
+          <TelegramConfig projects={projects} />
         )}
       </main>
       {showAddModal && (

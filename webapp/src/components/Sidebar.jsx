@@ -1,4 +1,4 @@
-import { LayoutDashboard, CheckSquare, Rocket } from 'lucide-react'
+import { LayoutDashboard, CheckSquare, Rocket, MessageSquare, Settings } from 'lucide-react'
 
 function Sidebar({ activeView, setActiveView, projectCount }) {
   return (
@@ -26,10 +26,24 @@ function Sidebar({ activeView, setActiveView, projectCount }) {
           <CheckSquare size={18} />
           <span>Daily Tasks</span>
         </button>
+        <button
+          className={`nav-item ${activeView === 'telegram' ? 'active' : ''}`}
+          onClick={() => setActiveView('telegram')}
+        >
+          <MessageSquare size={18} />
+          <span>Telegram</span>
+        </button>
+        <button
+          className={`nav-item ${activeView === 'telegram-config' ? 'active' : ''}`}
+          onClick={() => setActiveView('telegram-config')}
+        >
+          <Settings size={18} />
+          <span>TG Settings</span>
+        </button>
       </nav>
 
       <div className="sidebar-footer">
-        <p>AirDrop Manager v1.0</p>
+        <p>AirDrop Manager v1.1</p>
       </div>
     </aside>
   )
