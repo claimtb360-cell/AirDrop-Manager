@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Settings, Wifi, WifiOff, Trash2, Link, Send } from 'lucide-react'
+import { Settings, Wifi, WifiOff, Trash2, Link, Send, Tag, Plus, X } from 'lucide-react'
 
 const API_BASE = 'http://localhost:3001/api'
 
@@ -11,10 +11,14 @@ function TelegramConfig({ projects }) {
   const [error, setError] = useState('')
   const [newChatId, setNewChatId] = useState('')
   const [newChatTitle, setNewChatTitle] = useState('')
+  const [globalKeywords, setGlobalKeywords] = useState([])
+  const [newGlobalKeyword, setNewGlobalKeyword] = useState('')
+  const [chatKeywordInputs, setChatKeywordInputs] = useState({})
 
   useEffect(() => {
     fetchStatus()
     fetchChats()
+    fetchKeywords()
     const interval = setInterval(() => {
       fetchStatus()
       fetchChats()
@@ -25,7 +29,11 @@ function TelegramConfig({ projects }) {
   const fetchStatus = async () => {
     try {
       const res = await fetch(`${API_BASE}/telegram/status`)
-      if (res.ok) setStatus(await res.json())
+      if (res.ok) {
+        const data = await res.json()
+        setStatus(data)
+        if (data.globalKeywords) setGlobalKeywords(data.globalKeywords)
+      }
     } catch (e) {
       setStatus(null)
     }
@@ -35,9 +43,17 @@ function TelegramConfig({ projects }) {
     try {
       const res = await fetch(`${API_BASE}/telegram/chats`)
       if (res.ok) setChats(await res.json())
-    } catch (e) {
-      // backend offline
-    }
+    } catch (e) {}
+  }
+
+  const fetchKeywords = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/telegram/keywords`)
+      if (res.ok) {
+        const data = await res.json()
+        setGlobalKeywords(data.globalKeywords || [])
+      }
+    } catch (e) {}
   }
 
   const connectBot = async () => {
@@ -111,6 +127,72 @@ function TelegramConfig({ projects }) {
     }
   }
 
+  // Global keyword management
+  const addGlobalKeyword = async () => {
+    if (!newGlobalKeyword.trim()) return
+    try {
+      const res = await fetch(`${API_BASE}/telegram/keywords/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keyword: newGlobalKeyword.trim() })
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setGlobalKeywords(data.globalKeywords)
+        setNewGlobalKeyword('')
+      }
+    } catch (e) {
+      setError('Failed to add keyword')
+    }
+  }
+
+  const removeGlobalKeyword = async (kw) => {
+    try {
+      const res = await fetch(`${API_BASE}/telegram/keywords/${encodeURIComponent(kw)}`, { method: 'DELETE' })
+      if (res.ok) {
+        const data = await res.json()
+        setGlobalKeywords(data.globalKeywords)
+      }
+    } catch (e) {
+      setError('Failed to remove keyword')
+    }
+  }
+
+  // Chat-specific keyword management
+  const addChatKeyword = async (chatId) => {
+    const kw = chatKeywordInputs[chatId]?.trim()
+    if (!kw) return
+    try {
+      const res = await fetch(`${API_BASE}/telegram/chats/${chatId}/keywords/add`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keyword: kw })
+      })
+      if (res.ok) {
+        setChatKeywordInputs({ ...chatKeywordInputs, [chatId]: '' })
+        await fetchChats()
+      }
+    } catch (e) {
+      setError('Failed to add keyword')
+    }
+  }
+
+  const removeChatKeyword = async (chatId, keyword) => {
+    const chat = chats.find(c => c.chatId === chatId)
+    if (!chat) return
+    const newKeywords = (chat.keywords || []).filter(k => k !== keyword)
+    try {
+      await fetch(`${API_BASE}/telegram/chats/${chatId}/keywords`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ keywords: newKeywords })
+      })
+      await fetchChats()
+    } catch (e) {
+      setError('Failed to remove keyword')
+    }
+  }
+
   const isConnected = status?.active
 
   return (
@@ -142,7 +224,6 @@ function TelegramConfig({ projects }) {
           <p className="help-text">
             Create a bot via <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer">@BotFather</a> on Telegram, 
             then disable privacy mode (<code>/setprivacy</code> → Disable) so it can read group messages.
-            Add the bot to your airdrop groups.
           </p>
           <div className="token-input">
             <input
@@ -167,44 +248,104 @@ function TelegramConfig({ projects }) {
 
       {error && <div className="error-msg">{error}</div>}
 
+      {/* KEYWORD FILTER SECTION */}
+      {isConnected && (
+        <div className="config-section keywords-section">
+          <label><Tag size={14} style={{ display: 'inline', marginRight: '6px' }} />Keyword Filter (Global)</label>
+          <p className="help-text">
+            Only messages containing at least one keyword will be captured. 
+            Use project names, terms like "airdrop", "claim", "snapshot", "testnet"...
+          </p>
+
+          <div className="keywords-list">
+            {globalKeywords.length === 0 ? (
+              <p className="empty-hint">No keywords set. Add keywords to start filtering messages.</p>
+            ) : (
+              globalKeywords.map(kw => (
+                <span key={kw} className="keyword-tag">
+                  {kw}
+                  <button onClick={() => removeGlobalKeyword(kw)}><X size={12} /></button>
+                </span>
+              ))
+            )}
+          </div>
+
+          <div className="keyword-input">
+            <input
+              type="text"
+              value={newGlobalKeyword}
+              onChange={(e) => setNewGlobalKeyword(e.target.value)}
+              placeholder="e.g., airdrop, LayerZero, claim, testnet..."
+              onKeyDown={(e) => e.key === 'Enter' && addGlobalKeyword()}
+            />
+            <button className="btn btn-primary" onClick={addGlobalKeyword} style={{ padding: '8px 12px' }}>
+              <Plus size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Monitored Chats */}
       {isConnected && (
         <>
           <div className="config-section">
-            <label>Monitored Groups/Channels</label>
+            <label>Monitored Groups</label>
             <p className="help-text">
-              Groups are auto-detected when the bot receives messages. You can also add manually by Chat ID.
+              Groups auto-detected when bot receives messages. You can add per-group keywords for more specific filtering.
             </p>
 
             {chats.length > 0 ? (
               <div className="chats-list">
                 {chats.map(chat => (
-                  <div key={chat.chatId} className="chat-item">
-                    <div className="chat-info">
-                      <Send size={14} color="var(--accent)" />
-                      <span className="chat-title">{chat.title}</span>
-                      <span className="chat-id">ID: {chat.chatId}</span>
+                  <div key={chat.chatId} className="chat-item-expanded">
+                    <div className="chat-item-header">
+                      <div className="chat-info">
+                        <Send size={14} color="var(--accent)" />
+                        <span className="chat-title">{chat.title}</span>
+                        <span className="chat-id">ID: {chat.chatId}</span>
+                      </div>
+                      <div className="chat-actions">
+                        <select
+                          value={chat.projectId || ''}
+                          onChange={(e) => linkChatToProject(chat.chatId, e.target.value)}
+                          title="Link to project"
+                        >
+                          <option value="">No project</option>
+                          {projects.map(p => (
+                            <option key={p.id} value={p.id}>{p.name}</option>
+                          ))}
+                        </select>
+                        <button className="btn btn-ghost" onClick={() => removeChat(chat.chatId)} title="Remove">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
-                    <div className="chat-actions">
-                      <select
-                        value={chat.projectId || ''}
-                        onChange={(e) => linkChatToProject(chat.chatId, e.target.value)}
-                        title="Link to project"
-                      >
-                        <option value="">No project</option>
-                        {projects.map(p => (
-                          <option key={p.id} value={p.id}>{p.name}</option>
-                        ))}
-                      </select>
-                      <button className="btn btn-ghost" onClick={() => removeChat(chat.chatId)} title="Remove">
-                        <Trash2 size={14} />
-                      </button>
+
+                    {/* Per-chat keywords */}
+                    <div className="chat-keywords">
+                      <span className="chat-keywords-label">Keywords:</span>
+                      {(chat.keywords || []).map(kw => (
+                        <span key={kw} className="keyword-tag keyword-tag-sm">
+                          {kw}
+                          <button onClick={() => removeChatKeyword(chat.chatId, kw)}><X size={10} /></button>
+                        </span>
+                      ))}
+                      <div className="chat-keyword-add">
+                        <input
+                          type="text"
+                          value={chatKeywordInputs[chat.chatId] || ''}
+                          onChange={(e) => setChatKeywordInputs({ ...chatKeywordInputs, [chat.chatId]: e.target.value })}
+                          placeholder="Add keyword..."
+                          onKeyDown={(e) => e.key === 'Enter' && addChatKeyword(chat.chatId)}
+                        />
+                        <button onClick={() => addChatKeyword(chat.chatId)}><Plus size={12} /></button>
+                      </div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="empty-hint">No groups detected yet. Send a message in a group where the bot is added.</p>
+              <p className="empty-hint">No groups detected yet.</p>
             )}
           </div>
 

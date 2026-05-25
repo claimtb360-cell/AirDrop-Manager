@@ -168,6 +168,13 @@ function TelegramFeed({ projects }) {
                 </span>
               </div>
               <p className="message-text">{msg.text}</p>
+              {msg.matchedKeywords?.length > 0 && (
+                <div className="message-keywords">
+                  {msg.matchedKeywords.map(kw => (
+                    <span key={kw} className="keyword-match-tag">{kw}</span>
+                  ))}
+                </div>
+              )}
             </div>
           ))
         )}

@@ -11,9 +11,29 @@ const PORT = process.env.PORT || 3001
 // In-memory storage for messages and bot instances
 let botInstance = null
 let botToken = ''
-let monitoredChats = [] // { chatId, title, projectId? }
-let messages = [] // { chatId, messageId, text, date, from, chatTitle }
+let monitoredChats = [] // { chatId, title, projectId?, keywords[] }
+let messages = [] // { chatId, messageId, text, date, from, chatTitle, matchedKeywords[] }
+let globalKeywords = [] // Global keywords applied to all chats
 const MAX_MESSAGES = 500
+
+// Check if a message matches any keywords for its chat or globally
+function matchesKeywords(text, chatId) {
+  if (!text) return { matches: false, matchedKeywords: [] }
+  const textLower = text.toLowerCase()
+
+  // Find chat-specific keywords
+  const chat = monitoredChats.find(c => c.chatId === chatId)
+  const chatKeywords = chat?.keywords || []
+
+  // Combine with global keywords
+  const allKeywords = [...new Set([...globalKeywords, ...chatKeywords])]
+
+  // If no keywords configured, accept nothing (require explicit keywords)
+  if (allKeywords.length === 0) return { matches: false, matchedKeywords: [] }
+
+  const matched = allKeywords.filter(kw => textLower.includes(kw.toLowerCase()))
+  return { matches: matched.length > 0, matchedKeywords: matched }
+}
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -46,16 +66,20 @@ app.post('/api/telegram/config', (req, res) => {
           chatId,
           title: msg.chat.title || `Chat ${chatId}`,
           projectId: null,
+          keywords: [],
           addedAt: new Date().toISOString()
         })
       }
 
-      // Store message
-      if (msg.text || msg.caption) {
+      // Only store message if it matches keywords
+      const text = msg.text || msg.caption || ''
+      const { matches, matchedKeywords } = matchesKeywords(text, chatId)
+
+      if (text && matches) {
         const messageEntry = {
           chatId,
           messageId: msg.message_id,
-          text: msg.text || msg.caption || '',
+          text,
           date: new Date(msg.date * 1000).toISOString(),
           from: {
             id: msg.from?.id,
@@ -64,7 +88,8 @@ app.post('/api/telegram/config', (req, res) => {
             username: msg.from?.username || ''
           },
           chatTitle: msg.chat.title || 'Private',
-          chatType: msg.chat.type
+          chatType: msg.chat.type,
+          matchedKeywords
         }
         messages.unshift(messageEntry)
         if (messages.length > MAX_MESSAGES) {
@@ -90,7 +115,8 @@ app.get('/api/telegram/status', (req, res) => {
     active: !!botInstance,
     token: botToken ? `${botToken.slice(0, 8)}...${botToken.slice(-4)}` : null,
     monitoredChats: monitoredChats.length,
-    totalMessages: messages.length
+    totalMessages: messages.length,
+    globalKeywords
   })
 })
 
@@ -182,10 +208,69 @@ app.post('/api/telegram/chats', async (req, res) => {
     chatId: chatId.toString(),
     title: title || `Chat ${chatId}`,
     projectId: null,
+    keywords: [],
     addedAt: new Date().toISOString()
   })
 
   res.json({ success: true })
+})
+
+// ==================== KEYWORD MANAGEMENT ====================
+
+// Get global keywords
+app.get('/api/telegram/keywords', (req, res) => {
+  res.json({ globalKeywords })
+})
+
+// Set global keywords
+app.post('/api/telegram/keywords', (req, res) => {
+  const { keywords } = req.body
+  if (!Array.isArray(keywords)) return res.status(400).json({ error: 'keywords must be an array' })
+  globalKeywords = keywords.filter(k => k && k.trim()).map(k => k.trim())
+  res.json({ globalKeywords })
+})
+
+// Add a global keyword
+app.post('/api/telegram/keywords/add', (req, res) => {
+  const { keyword } = req.body
+  if (!keyword || !keyword.trim()) return res.status(400).json({ error: 'keyword is required' })
+  const kw = keyword.trim()
+  if (!globalKeywords.includes(kw)) {
+    globalKeywords.push(kw)
+  }
+  res.json({ globalKeywords })
+})
+
+// Remove a global keyword
+app.delete('/api/telegram/keywords/:keyword', (req, res) => {
+  const kw = decodeURIComponent(req.params.keyword)
+  globalKeywords = globalKeywords.filter(k => k !== kw)
+  res.json({ globalKeywords })
+})
+
+// Set keywords for a specific chat
+app.post('/api/telegram/chats/:chatId/keywords', (req, res) => {
+  const { chatId } = req.params
+  const { keywords } = req.body
+  const chat = monitoredChats.find(c => c.chatId === chatId)
+  if (!chat) return res.status(404).json({ error: 'Chat not found' })
+  chat.keywords = Array.isArray(keywords) ? keywords.filter(k => k && k.trim()).map(k => k.trim()) : []
+  res.json(chat)
+})
+
+// Add keyword to a specific chat
+app.post('/api/telegram/chats/:chatId/keywords/add', (req, res) => {
+  const { chatId } = req.params
+  const { keyword } = req.body
+  const chat = monitoredChats.find(c => c.chatId === chatId)
+  if (!chat) return res.status(404).json({ error: 'Chat not found' })
+  if (!keyword || !keyword.trim()) return res.status(400).json({ error: 'keyword is required' })
+  const kw = keyword.trim()
+  if (!chat.keywords) chat.keywords = []
+  if (!chat.keywords.includes(kw)) {
+    chat.keywords.push(kw)
+  }
+  res.json(chat)
 })
 
 app.listen(PORT, () => {
