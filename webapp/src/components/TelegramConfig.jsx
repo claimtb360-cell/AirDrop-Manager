@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Settings, Wifi, WifiOff, Trash2, Link, Send, Tag, Plus, X } from 'lucide-react'
-
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
+import { API_BASE } from '../config'
 
 function TelegramConfig({ projects }) {
   const [token, setToken] = useState('')
