@@ -216,13 +216,28 @@ function TelegramConfig({ projects }) {
         )}
       </div>
 
+      {/* Setup Guide */}
+      <div className="config-section" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '16px' }}>
+        <label>📋 Hướng dẫn cài đặt</label>
+        <div className="help-text" style={{ lineHeight: '1.8' }}>
+          <p><strong>Bước 1:</strong> Tạo bot qua <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer">@BotFather</a> → <code>/newbot</code> → copy Token</p>
+          <p><strong>Bước 2:</strong> Gửi <code>/setprivacy</code> cho @BotFather → chọn bot → <strong>Disable</strong></p>
+          <p><strong>Bước 3:</strong> Tạo 1 group riêng (ví dụ: "Airdrop Feed")</p>
+          <p><strong>Bước 4:</strong> Thêm bot vào group đó → đặt bot làm <strong>Admin</strong></p>
+          <p><strong>Bước 5:</strong> Dán Token bên dưới → Connect</p>
+          <p><strong>Bước 6:</strong> Thêm Keywords (airdrop, claim, testnet...)</p>
+          <p style={{ marginTop: '8px', padding: '8px', background: 'rgba(251, 191, 36, 0.1)', borderRadius: '6px', color: 'var(--warning)' }}>
+            💡 <strong>Mẹo cho channel read-only:</strong> Forward tin nhắn từ channel vào group relay của bạn. Bot sẽ tự động đọc và lọc theo keyword.
+          </p>
+        </div>
+      </div>
+
       {/* Connect / Disconnect */}
       {!isConnected ? (
         <div className="config-section">
           <label>Bot Token</label>
           <p className="help-text">
-            Create a bot via <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer">@BotFather</a> on Telegram, 
-            then disable privacy mode (<code>/setprivacy</code> → Disable) so it can read group messages.
+            Dán token bot của bạn vào đây. Nếu chưa có, tạo qua <a href="https://t.me/BotFather" target="_blank" rel="noopener noreferrer">@BotFather</a>.
           </p>
           <div className="token-input">
             <input
@@ -250,10 +265,9 @@ function TelegramConfig({ projects }) {
       {/* KEYWORD FILTER SECTION */}
       {isConnected && (
         <div className="config-section keywords-section">
-          <label><Tag size={14} style={{ display: 'inline', marginRight: '6px' }} />Keyword Filter (Global)</label>
+          <label><Tag size={14} style={{ display: 'inline', marginRight: '6px' }} />Keyword Filter (Bộ lọc từ khóa)</label>
           <p className="help-text">
-            Only messages containing at least one keyword will be captured. 
-            Use project names, terms like "airdrop", "claim", "snapshot", "testnet"...
+            Chỉ tin nhắn chứa ít nhất 1 từ khóa mới được lưu lại. Thêm tên dự án, từ khóa liên quan: "airdrop", "claim", "snapshot", "testnet", "whitelist"...
           </p>
 
           <div className="keywords-list">
@@ -288,9 +302,9 @@ function TelegramConfig({ projects }) {
       {isConnected && (
         <>
           <div className="config-section">
-            <label>Monitored Groups</label>
+            <label>Monitored Groups (Nhóm đang theo dõi)</label>
             <p className="help-text">
-              Groups auto-detected when bot receives messages. You can add per-group keywords for more specific filtering.
+              Nhóm tự động được phát hiện khi bot nhận tin nhắn. Bạn có thể thêm keyword riêng cho từng nhóm.
             </p>
 
             {chats.length > 0 ? (
@@ -350,7 +364,7 @@ function TelegramConfig({ projects }) {
 
           {/* Manual add chat */}
           <div className="config-section">
-            <label>Add Chat Manually</label>
+            <label>Thêm nhóm thủ công</label>
             <div className="add-chat-form">
               <input
                 type="text"
