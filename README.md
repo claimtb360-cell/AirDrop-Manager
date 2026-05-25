@@ -1,101 +1,232 @@
 # AirDrop Manager
 
-A modern, user-friendly application to manage cryptocurrency airdrop projects. Track your daily tasks, manage access links, and monitor project timelines — all in one place.
+Phần mềm quản lý dự án airdrop chuyên nghiệp. Theo dõi task hàng ngày, quản lý link truy cập, tự động thu thập thông tin từ Telegram — tất cả trong một giao diện tối ưu.
 
-![React](https://img.shields.io/badge/React-19-blue) ![Vite](https://img.shields.io/badge/Vite-6-purple) ![Chrome Extension](https://img.shields.io/badge/Chrome-Extension%20MV3-green)
+## Tính năng chính
 
-## Features
+- **Quản lý dự án dạng bảng** — Thêm, sửa, xóa, lọc dự án theo trạng thái/chain
+- **Hệ thống trạng thái** — Chưa làm, Đang làm, Đã kết thúc, Đã trả air, Bỏ qua, Scam...
+- **Daily Tasks** — Checklist task hàng ngày cho từng dự án, theo dõi tiến độ theo ngày
+- **Access Links** — Lưu và mở nhanh link đăng ký, Discord, Twitter, Telegram
+- **Telegram Integration** — Kết nối bot Telegram để tự động thu thập tin nhắn từ group
+- **Keyword Filter** — Chỉ lấy tin nhắn chứa từ khóa liên quan (loại bỏ nhiễu)
+- **Detail Panel** — Xem chi tiết dự án bên phải khi click
+- **Tìm kiếm & Lọc** — Filter theo chain, trạng thái, từ khóa
+- **Dark Theme** — Giao diện tối, tối ưu cho sử dụng lâu dài
+- **Chrome Extension** — Truy cập nhanh task từ thanh toolbar
 
-- **Project Management** — Add, edit, and organize all your airdrop projects
-- **Daily Task Checklist** — Track daily tasks with per-date completion history
-- **Access Links** — Quick access to project websites, Discord, Twitter, etc.
-- **Timeline Tracking** — Start/end dates with automatic status detection (Active/Upcoming/Ended)
-- **Progress Tracking** — Visual progress bars for daily task completion
-- **Search & Filter** — Quickly find projects by name or description
-- **Dark Theme** — Beautiful dark UI optimized for extended use
-- **Persistent Storage** — Data saved locally (localStorage for web, chrome.storage for extension)
+---
 
-## Project Structure
+## Cấu trúc thư mục
 
 ```
 AirDrop-Manager/
-├── webapp/          # React + Vite web application
+├── webapp/          # Web app (React + Vite)
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── Sidebar.jsx
-│   │   │   ├── ProjectList.jsx
-│   │   │   ├── ProjectDetail.jsx
-│   │   │   ├── AddProjectModal.jsx
-│   │   │   └── DailyChecklist.jsx
+│   │   │   ├── ProjectsView.jsx      # Bảng dự án + stats
+│   │   │   ├── ProjectDetailPanel.jsx # Panel chi tiết bên phải
+│   │   │   ├── AddProjectModal.jsx    # Form thêm dự án
+│   │   │   ├── DailyChecklist.jsx     # Checklist hàng ngày
+│   │   │   ├── Sidebar.jsx           # Menu trái
+│   │   │   ├── TelegramFeed.jsx      # Feed tin nhắn TG
+│   │   │   └── TelegramConfig.jsx    # Cấu hình bot TG
 │   │   ├── App.jsx
 │   │   ├── App.css
 │   │   └── main.jsx
 │   └── package.json
+├── backend/         # Backend API (Express + Telegram Bot)
+│   ├── server.js
+│   └── package.json
 ├── extension/       # Chrome Extension (Manifest V3)
 │   ├── manifest.json
-│   ├── popup.html
-│   ├── popup.css
-│   ├── popup.js
+│   ├── popup.html/css/js
 │   └── icons/
 └── README.md
 ```
 
-## Getting Started
+---
 
-### Web Application
+## Hướng dẫn cài đặt chi tiết
+
+### Yêu cầu hệ thống
+
+- **Node.js** phiên bản 18 trở lên (khuyến nghị 20+)
+- **npm** (đi kèm Node.js)
+- **Git** (để clone repo)
+- Trình duyệt Chrome/Edge (cho extension)
+
+### Bước 1: Clone repository
 
 ```bash
+git clone https://github.com/claimtb360-cell/AirDrop-Manager.git
+cd AirDrop-Manager
+```
+
+### Bước 2: Cài đặt Web App
+
+```bash
+# Di chuyển vào thư mục webapp
 cd webapp
+
+# Cài đặt dependencies
 npm install
+
+# Chạy ở chế độ development (localhost:5173)
 npm run dev
 ```
 
-The app will start at `http://localhost:5173`
+Mở trình duyệt và truy cập: **http://localhost:5173**
 
-To build for production:
+#### Build cho production:
 ```bash
 npm run build
 ```
+File build nằm trong thư mục `webapp/dist/` — có thể deploy lên bất kỳ hosting tĩnh nào.
 
-### Chrome Extension
+### Bước 3: Cài đặt Backend (cho Telegram Integration)
 
-1. Open Chrome and navigate to `chrome://extensions/`
-2. Enable **Developer mode** (toggle in top-right)
-3. Click **Load unpacked**
-4. Select the `extension/` folder
-5. The AirDrop Manager icon will appear in your toolbar
+```bash
+# Mở terminal mới, quay lại thư mục gốc
+cd AirDrop-Manager/backend
 
-## Usage
+# Cài đặt dependencies
+npm install
 
-### Adding a Project
-1. Click **"Add Project"** button
-2. Fill in project details:
-   - Name (required)
-   - Description
-   - Network/Chain (e.g., Ethereum, Solana)
-   - Estimated value
-   - Start & End dates
-   - Access links (website, Discord, Twitter, etc.)
-   - Daily tasks to complete
+# Chạy server
+npm start
+```
 
-### Daily Checklist
-- Switch to **"Daily Tasks"** view to see all tasks across projects for today
-- Check off tasks as you complete them
-- Navigate between dates to review past/future tasks
-- Progress bar shows overall completion
+Backend sẽ chạy tại: **http://localhost:3001**
 
-### Chrome Extension
-- Click the extension icon for a quick overview of today's tasks
-- Check off tasks directly from the popup
-- Click project links to open them in new tabs
-- Add new projects from the extension
+> **Lưu ý:** Backend cần chạy song song với webapp để tính năng Telegram hoạt động.
+
+### Bước 4: Cấu hình Telegram Bot
+
+#### 4.1 Tạo Bot trên Telegram:
+1. Mở Telegram, tìm **@BotFather**
+2. Gửi lệnh `/newbot`
+3. Đặt tên bot (ví dụ: `AirdropTracker_Bot`)
+4. Copy **Bot Token** (dạng `123456789:ABCdefGHIjklMNOpqrSTUvwxYZ`)
+
+#### 4.2 Tắt Privacy Mode (QUAN TRỌNG):
+1. Gửi cho @BotFather: `/setprivacy`
+2. Chọn bot của bạn
+3. Chọn **Disable**
+
+> Nếu không tắt privacy mode, bot sẽ KHÔNG đọc được tin nhắn trong group.
+
+#### 4.3 Thêm bot vào group:
+1. Vào group Telegram airdrop mà bạn theo dõi
+2. Thêm bot vào group (Add member → tìm tên bot)
+3. Bot sẽ tự động phát hiện group
+
+#### 4.4 Cấu hình trong webapp:
+1. Vào **TG Settings** trong sidebar
+2. Dán Bot Token → nhấn **Connect**
+3. Thêm **Keyword Filter** (bắt buộc):
+   - Ví dụ: `airdrop`, `claim`, `snapshot`, `testnet`, `whitelist`, `token`
+   - Thêm tên các dự án: `LayerZero`, `zkSync`, `Scroll`...
+4. Sau đó vào tab **Telegram** để xem tin nhắn đã lọc
+
+### Bước 5: Cài đặt Chrome Extension (tùy chọn)
+
+1. Mở Chrome → nhập `chrome://extensions/` vào thanh địa chỉ
+2. Bật **Developer mode** (góc trên bên phải)
+3. Nhấn **Load unpacked**
+4. Chọn thư mục `extension/` trong project
+5. Icon AirDrop Manager xuất hiện trên toolbar
+
+---
+
+## Hướng dẫn sử dụng
+
+### Quản lý dự án
+
+| Thao tác | Cách làm |
+|----------|----------|
+| Thêm dự án | Nhấn nút "Thêm dự án" trên toolbar |
+| Xem chi tiết | Click vào dòng trong bảng → panel hiện bên phải |
+| Đổi trạng thái | Click vào badge trạng thái → chọn trạng thái mới |
+| Xóa dự án | Click icon thùng rác trong cột Hành động |
+| Xóa nhiều | Tick checkbox → nhấn nút Xóa |
+| Lọc theo chain | Dùng dropdown "Tất cả chain" trên toolbar |
+| Lọc theo trạng thái | Click stat trên thanh thống kê hoặc dùng dropdown |
+| Tìm kiếm | Gõ vào ô tìm kiếm trên toolbar |
+
+### Daily Tasks
+
+1. Vào **Daily Tasks** trong sidebar
+2. Xem tất cả task của các dự án cho hôm nay
+3. Check off task khi hoàn thành
+4. Dùng mũi tên ← → để xem ngày khác
+
+### Telegram Feed
+
+1. Cấu hình bot (xem Bước 4 ở trên)
+2. Thêm keywords để lọc tin nhắn
+3. Vào tab **Telegram** trong sidebar
+4. Tin nhắn phù hợp sẽ tự động hiển thị
+5. Có thể lọc theo project hoặc group
+
+---
+
+## Chạy đồng thời (Development)
+
+Mở 2 terminal:
+
+**Terminal 1 — Backend:**
+```bash
+cd backend
+npm start
+```
+
+**Terminal 2 — Frontend:**
+```bash
+cd webapp
+npm run dev
+```
+
+---
+
+## Deploy
+
+### Deploy webapp lên GitHub Pages:
+Webapp tự động deploy khi push code lên branch `main` (GitHub Actions).
+
+Live demo: https://claimtb360-cell.github.io/AirDrop-Manager/
+
+### Deploy backend (cho Telegram):
+Backend cần server chạy 24/7. Có thể deploy lên:
+- **Railway** (free tier)
+- **Render** (free tier)
+- **VPS** (DigitalOcean, Vultr...)
+- **Localhost** (chạy trên máy cá nhân)
+
+---
 
 ## Tech Stack
 
-- **Web App**: React 19, Vite 6, Lucide Icons, date-fns
-- **Extension**: Vanilla JS, Chrome Extension Manifest V3
-- **Storage**: localStorage (web), chrome.storage.local (extension)
-- **Styling**: Custom CSS with CSS Variables (dark theme)
+| Thành phần | Công nghệ |
+|-----------|----------|
+| Frontend | React 19, Vite 8, Lucide Icons |
+| Backend | Express, node-telegram-bot-api |
+| Extension | Vanilla JS, Chrome MV3 |
+| Storage | localStorage (web), chrome.storage (ext) |
+| Styling | Custom CSS, CSS Variables (dark theme) |
+| Deploy | GitHub Pages + GitHub Actions |
+
+---
+
+## Troubleshooting
+
+| Vấn đề | Giải pháp |
+|--------|----------|
+| Blank page khi mở web | Xóa cache, reload. Kiểm tra console (F12) |
+| Telegram không nhận tin | Kiểm tra privacy mode đã Disable chưa |
+| Bot không phát hiện group | Gửi 1 tin nhắn bất kỳ trong group sau khi thêm bot |
+| Tin nhắn không hiển thị | Kiểm tra đã thêm keyword chưa (không có keyword = không lưu gì) |
+| Build lỗi trên GitHub | Kiểm tra tab Actions để xem log lỗi |
 
 ## License
 
